@@ -3,10 +3,10 @@ import React, {Fragment} from 'react';
 import {
   Navigation,
   type LayoutRoot,
-  LayoutStack,
+  type LayoutStack,
 } from 'react-native-navigation';
 import invariant from 'tiny-invariant';
-import {MatchFunction, MatchResult, match} from 'path-to-regexp';
+import {type MatchFunction, match} from 'path-to-regexp';
 
 import {parseURL} from './url';
 import {ComponentIdProvider, URLProvider} from './contexts';
@@ -127,6 +127,12 @@ export class RouterManager {
     // const componentName = uniqueId('Modal');
   }
 
+  /**
+   * Registers a tab with the router.
+   * @param {string} sanitizedRoute - The sanitized route path.
+   * @param {React.ComponentType<any>} Component - The React component associated with the tab.
+   * @param {React.ComponentType<any>} [Provider=({children}) => (<Fragment>{children}</Fragment>)] - The provider component wrapping the registered tab component.
+   */
   protected registerTab(
     sanitizedRoute: string,
     Component: React.ComponentType<any>,
@@ -134,9 +140,11 @@ export class RouterManager {
       <Fragment>{children}</Fragment>
     ),
   ) {
+    // Generate the component name for the tab
     // @ts-ignore
     const componentName = `Tab${Component.$$RNNRTypeIndex}`;
 
+    // Define the layout for the tab
     const bottomTab: LayoutStack = {
       children: [
         {
@@ -151,6 +159,7 @@ export class RouterManager {
       },
     };
 
+    // Update the layout with the new tab
     this.layout = {
       root: {
         bottomTabs: {
@@ -158,6 +167,7 @@ export class RouterManager {
             ...this.layout.root.bottomTabs!.children!,
             {stack: bottomTab},
           ].sort((a, b) => {
+            // Sort the tabs alphabetically by component name
             invariant(
               a.stack?.children?.[0]?.component?.name &&
                 typeof a.stack.children[0].component.name === 'string',
@@ -175,18 +185,28 @@ export class RouterManager {
       },
     };
 
+    // Register the tab component
     this.registerComponent(sanitizedRoute, componentName, Component, Provider);
   }
 
+  /**
+   * Registers a component with the router and React Native Navigation.
+   * @param {string} sanitizedRoute - The sanitized route path.
+   * @param {string} componentName - The name of the component.
+   * @param {React.ComponentType<any>} Component - The React component to be registered.
+   * @param {React.ComponentType<any>} Provider - The provider component wrapping the registered component.
+   */
   protected registerComponent(
     sanitizedRoute: string,
     componentName: string,
     Component: React.ComponentType<any>,
     Provider: React.ComponentType<any>,
   ) {
+    // Push the route information to the routes array
     this.routes.push({
       sanitizedRoute,
       name: componentName,
+      // Function to match the route using sanitizedRoute and decodeURIComponent
       fn: match(sanitizedRoute, {decode: decodeURIComponent}),
     });
 
@@ -225,43 +245,67 @@ export class RouterManager {
     // this will contain shared logic of registering a screen and tab
   }
 
+  /**
+   * Adds a route to the router.
+   * @param {string} route - The route path.
+   * @param {React.ComponentType<any>} Component - The React component associated with the route.
+   */
   addRoute(route: string, Component: React.ComponentType<any>) {
+    // Sanitize the route
     const sanitizedRoute = this.sanitizeRoute(route);
 
+    // Check if the component is a Screen
     // @ts-ignore
     if (Component.$$RNNRType === 'Screen') {
-      this.registerScreen(sanitizedRoute, Component, ({children}) => (
+      // Register the Screen component
+      return this.registerScreen(sanitizedRoute, Component, ({children}) => (
         <Fragment>{children}</Fragment>
       ));
-
-      return;
     }
 
+    // Check if the component is a Tab
     // @ts-ignore
     if (Component.$$RNNRType === 'Tab') {
-      this.registerTab(sanitizedRoute, Component, ({children}) => (
+      // Register the Tab component
+      return this.registerTab(sanitizedRoute, Component, ({children}) => (
         <Fragment>{children}</Fragment>
       ));
-
-      return;
     }
 
+    // If the component is neither a Screen nor a Tab, throw an error
     throw Error(
       'Route is not defined as a Screen or Tab. Please utilize `makeScreen` and `makeTab` for route components.',
     );
   }
 
+  /**
+   * Resolves a path to a route object.
+   * @param {string} path - The path to resolve to a route object.
+   * @returns {RouteObject} - The resolved route object.
+   */
   pathToRoute(path: string) {
+    // Extract the path without the search query
     const pathWithoutSearch = path.split('?')[0];
-    const matchedRoute = this.routes.find(it => it.fn(pathWithoutSearch!));
 
+    // type-guard pathWithoutSearch to be a string
+    invariant(
+      pathWithoutSearch,
+      `Failed to parse URL from searchParams: ${path}`,
+    );
+
+    // Find the route that matches the given path
+    const matchedRoute = this.routes.find(route => route.fn(pathWithoutSearch));
+
+    // Ensure that a matching route is found, otherwise throw an error
     invariant(matchedRoute, `Cannot find route that matches path: ${path}`);
 
-    const match = matchedRoute.fn(pathWithoutSearch!) as MatchResult;
+    // Extract the match result using the matched route's function
+    const match = matchedRoute.fn(pathWithoutSearch);
 
+    // Return the route object with additional properties
     return {
-      ...match,
-      name: matchedRoute.name,
+      ...match, // Include match result properties
+      name: matchedRoute.name, // Set the name property to the matched route's name
     };
   }
 }
