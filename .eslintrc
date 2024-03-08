@@ -1,0 +1,5 @@
+{
+  "root": true,
+  "requireConfigFile": false,
+  "extends": "@react-native"
+}
