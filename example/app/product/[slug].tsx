@@ -1,12 +1,12 @@
 import React from 'react';
-import {makeScreen, useComponentId, useNavigator, useURL} from 'rnn-router';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {makeScreen, useComponentId, useNavigator, useURL} from 'rnn-router';
 
 export default makeScreen(
   function ProductSlug() {
-    const [componentId] = useComponentId();
     const [url] = useURL();
     const navigator = useNavigator();
+    const [componentId] = useComponentId();
 
     function onPress() {
       navigator.open('/settings', {});
@@ -33,6 +33,7 @@ export default makeScreen(
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    gap: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },

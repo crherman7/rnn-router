@@ -1,5 +1,3 @@
-/* eslint-disable turbo/no-undeclared-env-vars */
-
 /**
  * Represents the application context module.
  * @type {__MetroModuleApi.RequireContext}

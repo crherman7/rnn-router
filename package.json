@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "license": "MIT",
   "private": true,
-  "types": "dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./entry": "./dist/entry.js",
@@ -18,6 +17,7 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "typecheck": "tsc --noEmit"
   },
+  "types": "dist/index.d.ts",
   "dependencies": {
     "lodash": "^4.17.21",
     "path-to-regexp": "^6.2.1",
